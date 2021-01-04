@@ -284,4 +284,4 @@ optional arguments:
 
 # Install on OpenWRT 19.x
 
-```opkg install sudo unzip```
+```opkg install sudo unzip iputils-ping```

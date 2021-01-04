@@ -489,7 +489,7 @@ def write_updated_config(chosen_servers: List) -> None:
     if len(chosen_servers) > 0:
         with open("/etc/openvpn/nordvpn-servers.ovpn", "w") as config_file:
             for server in chosen_servers:
-                config_file.write("remote {server}.nordvpn.com 1194".format(server=server))
+                config_file.write("remote {server}.nordvpn.com 1194\n".format(server=server))
 
 
 # Filters servers based on the specified criteria.
