@@ -61,6 +61,9 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
         running it as a background process, to check status "systemctl status openpyn"',
         action='store_true')
     parser.add_argument(
+        '--ignore_dep_checks', help='ignore dependency checks before running',
+        action='store_true')
+    parser.add_argument(
         '-m', '--max-load', type=int, default=70, help='Specify load threshold, \
         rejects servers with more load than this, DEFAULT=70')
     parser.add_argument(
@@ -97,6 +100,9 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
         country with their current load and OpenVPN support status. Works in \
         conjunction with (-a | --area, and server types (--p2p, --tor) \
         e.g "openpyn -l it --p2p --area milano"')
+    parser.add_argument(
+        '--list_best_servers', dest="list_best_servers", type=int, default=10,
+        help='prints a list of the least-loaded servers that meet the requested criteria')
     parser.add_argument(
         '--silent', help='Do not try to send notifications. Use if "libnotify" or "gi"\
         are not available. Automatically used in systemd service file', action='store_true')
@@ -141,16 +147,17 @@ def main() -> bool:
         args.kill, args.kill_flush, args.update, args.list_servers,
         args.force_fw_rules, args.p2p, args.dedicated, args.double_vpn,
         args.tor_over_vpn, args.anti_ddos, args.netflix, args.test, args.internally_allowed,
-        args.skip_dns_patch, args.silent, args.nvram, args.openvpn_options, args.location)
+        args.skip_dns_patch, args.silent, args.nvram, args.openvpn_options, args.location,
+        args.ignore_dep_checks, list_best_servers=args.list_best_servers)
     return return_code
 
 
 # run openpyn
 def run(init: bool, server: str, country_code: str, country: str, area: str, tcp: bool, daemon: bool,
-        max_load: int, top_servers: int, pings: str, kill: bool, kill_flush: bool, update: bool, list_servers: bool,
+        max_load: int, top_servers: int, pings: str, kill: bool, kill_flush: bool, update: bool, list_servers: str,
         force_fw_rules: bool, p2p: bool, dedicated: bool, double_vpn: bool, tor_over_vpn: bool, anti_ddos: bool,
         netflix: bool, test: bool, internally_allowed: List, skip_dns_patch: bool, silent: bool, nvram: str,
-        openvpn_options: str, location: float) -> bool:
+        openvpn_options: str, location: float, ignore_dep_checks: bool, list_best_servers: str) -> bool:
 
     if init:
         initialise(log_folder)
@@ -239,7 +246,7 @@ def run(init: bool, server: str, country_code: str, country: str, area: str, tcp
         return 1
 
     # check if dependencies are installed
-    if shutil.which("openvpn") is None or shutil.which("wget") is None or shutil.which("unzip") is None:
+    if (not ignore_dep_checks) and (shutil.which("openvpn") is None or shutil.which("wget") is None or shutil.which("unzip") is None):
         # In case of Debian Sid where "openvpn" is only in root's PATH, don't error out
         try:
             root_access = root.verify_root_access(
@@ -248,7 +255,7 @@ def run(init: bool, server: str, country_code: str, country: str, area: str, tcp
                 root.obtain_root_access()
             subprocess.check_output(["sudo", "which", "wget"])
             subprocess.check_output(["sudo", "which", "unzip"])
-            # subprocess.check_output(["sudo", "which", "openvpn"])
+            subprocess.check_output(["sudo", "which", "openvpn"])
         except subprocess.CalledProcessError:
             logger.error("Please Install 'openvpn' 'wget' 'unzip' first")
             return 1
@@ -346,7 +353,7 @@ def run(init: bool, server: str, country_code: str, country: str, area: str, tcp
         update_config_files()
 
     # a hack to list all countries and their codes when no arg supplied with "-l"
-    elif list_servers != 'nope':      # means "-l" supplied
+    elif list_servers != "nope":      # means "-l" supplied
         if list_servers is None:      # no arg given with "-l"
             if p2p or dedicated or double_vpn or tor_over_vpn or anti_ddos or netflix:
                 # show the special servers in all countries
@@ -365,6 +372,26 @@ def run(init: bool, server: str, country_code: str, country: str, area: str, tcp
                 list_servers=list_servers, port=port, area=area, p2p=p2p, dedicated=dedicated,
                 double_vpn=double_vpn, tor_over_vpn=tor_over_vpn, anti_ddos=anti_ddos,
                 netflix=netflix, location=location)
+        return 0
+
+    elif list_best_servers > 0:
+        better_servers_list = find_better_servers(country_code=country_code,
+                                                  area=area,
+                                                  max_load=max_load,
+                                                  top_servers=list_best_servers,
+                                                  tcp=tcp,
+                                                  p2p=p2p,
+                                                  dedicated=dedicated,
+                                                  double_vpn=double_vpn,
+                                                  tor_over_vpn=tor_over_vpn,
+                                                  anti_ddos=anti_ddos,
+                                                  netflix=netflix,
+                                                  location=location,
+                                                  stats=stats)
+        pinged_servers_list = ping_servers(better_servers_list, pings, stats)
+        chosen_servers = choose_best_servers(pinged_servers_list, stats)
+
+        return 0
 
     # only clear/touch FW Rules if "-f" used
     elif force_fw_rules:
@@ -455,6 +482,13 @@ def initialise(log_folder: str) -> bool:
             return systemd.install_service()
         logger.warning("systemd not found, skipping systemd integration")
         return 1
+
+
+def write_updated_config(chosen_servers: List) -> None:
+    if len(chosen_servers > 0):
+        with open("/etc/openvpn/nordvpn-servers.ovpn", "w") as config_file:
+            for server in chosen_servers:
+                config_file.write("remote {server}.nordvpn.com 1194".format(server=server))
 
 
 # Filters servers based on the specified criteria.
