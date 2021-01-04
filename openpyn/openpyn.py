@@ -636,10 +636,10 @@ is nordcdn.com blocked by your ISP or Country?, If so use Privoxy \
 [https://github.com/jotyGill/openpyn-nordvpn/issues/109]")
         sys.exit()
     try:
-        subprocess.check_call(
-            ["sudo", "unzip", "-q", "-u", "-o", __basefilepath__ +
-                "ovpn", "-d", __basefilepath__ + "files/"],
-            stderr=subprocess.DEVNULL)
+        # subprocess.check_call(
+        #     ["sudo", "unzip", "-q", "-u", "-o", __basefilepath__ +
+        #         "ovpn", "-d", __basefilepath__ + "files/"],
+        #     stderr=subprocess.DEVNULL)
         subprocess.check_call(
             ["sudo", "rm", __basefilepath__ + "ovpn.zip"])
     except subprocess.CalledProcessError:
@@ -648,8 +648,8 @@ is nordcdn.com blocked by your ISP or Country?, If so use Privoxy \
                 ["sudo", "rm", "-rf", __basefilepath__ + "files/ovpn_udp"])
             subprocess.check_call(
                 ["sudo", "rm", "-rf", __basefilepath__ + "files/ovpn_tcp"])
-            subprocess.check_call(
-                ["sudo", "unzip", __basefilepath__ + "ovpn", "-d", __basefilepath__ + "files/"])
+            #subprocess.check_call(
+            #    ["sudo", "unzip", __basefilepath__ + "ovpn", "-d", __basefilepath__ + "files/"])
             subprocess.check_call(
                 ["sudo", "rm", __basefilepath__ + "ovpn.zip"])
         except subprocess.CalledProcessError:

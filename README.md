@@ -281,3 +281,7 @@ optional arguments:
 - [x] view status of the connection after launching in --daemon mode
 - [x] desktop notifications
 - [x] initd script for Asuswrt-merlin: "/opt/etc/init.d/S23openpyn start"
+
+# Install on OpenWRT 19.x
+
+```opkg install sudo unzip```
