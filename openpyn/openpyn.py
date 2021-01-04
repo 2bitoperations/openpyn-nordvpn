@@ -620,41 +620,7 @@ def kill_management_client() -> None:
 
 
 def update_config_files() -> None:
-    root.verify_root_access("Root access needed to write files in " +
-                            "'" + __basefilepath__ + "files/" + "'")
-    try:
-        zip_archive = __basefilepath__ + "ovpn.zip"
-        if os.path.exists(zip_archive):
-            print(Fore.BLUE + "Previous update file already exists, deleting..." + Style.RESET_ALL)
-            os.remove(zip_archive)
-
-        # subprocess.check_call(
-        #     ["sudo", "wget", "https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip", "-P", __basefilepath__])
-    except subprocess.CalledProcessError:
-        logger.error("Exception occurred while wgetting zip, is the internet working? \
-is nordcdn.com blocked by your ISP or Country?, If so use Privoxy \
-[https://github.com/jotyGill/openpyn-nordvpn/issues/109]")
-        sys.exit()
-    try:
-        # subprocess.check_call(
-        #     ["sudo", "unzip", "-q", "-u", "-o", __basefilepath__ +
-        #         "ovpn", "-d", __basefilepath__ + "files/"],
-        #     stderr=subprocess.DEVNULL)
-        subprocess.check_call(
-            ["sudo", "rm", __basefilepath__ + "ovpn.zip"])
-    except subprocess.CalledProcessError:
-        try:
-            subprocess.check_call(
-                ["sudo", "rm", "-rf", __basefilepath__ + "files/ovpn_udp"])
-            subprocess.check_call(
-                ["sudo", "rm", "-rf", __basefilepath__ + "files/ovpn_tcp"])
-            #subprocess.check_call(
-            #    ["sudo", "unzip", __basefilepath__ + "ovpn", "-d", __basefilepath__ + "files/"])
-            subprocess.check_call(
-                ["sudo", "rm", __basefilepath__ + "ovpn.zip"])
-        except subprocess.CalledProcessError:
-            logger.error("Exception occured while unzipping ovpn.zip, is unzip installed?")
-            sys.exit()
+    return
 
 
 # Lists information about servers under the given criteria.
