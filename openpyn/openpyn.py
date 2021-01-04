@@ -628,8 +628,8 @@ def update_config_files() -> None:
             print(Fore.BLUE + "Previous update file already exists, deleting..." + Style.RESET_ALL)
             os.remove(zip_archive)
 
-        subprocess.check_call(
-            ["sudo", "wget", "https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip", "-P", __basefilepath__])
+        # subprocess.check_call(
+        #     ["sudo", "wget", "https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip", "-P", __basefilepath__])
     except subprocess.CalledProcessError:
         logger.error("Exception occurred while wgetting zip, is the internet working? \
 is nordcdn.com blocked by your ISP or Country?, If so use Privoxy \
