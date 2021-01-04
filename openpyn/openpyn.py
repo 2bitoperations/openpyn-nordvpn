@@ -390,6 +390,7 @@ def run(init: bool, server: str, country_code: str, country: str, area: str, tcp
                                                   stats=stats)
         pinged_servers_list = ping_servers(better_servers_list, pings, stats)
         chosen_servers = choose_best_servers(pinged_servers_list, stats)
+        write_updated_config(chosen_servers=chosen_servers)
 
         return 0
 
