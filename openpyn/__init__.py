@@ -11,12 +11,18 @@ __basefilepath__ = os.path.dirname(os.path.abspath(__file__)) + "/"
 log_format = '%(asctime)s [%(levelname)s] %(message)s'
 log_folder = "/var/log/openpyn"     # logs will be saved here
 
+if os.path.exists('./openpyn/S23openpyn'):
+    init_script = './openpyn/S23openpyn'
+elif os.path.exists('./S23openpyn'):
+    init_script = './S23openpyn'
+else:
+    init_script = None
 
-if sys.platform == "linux":
+if sys.platform == "linux" and init_script:
     if subprocess.check_output(['/bin/uname', '-o']).decode(sys.stdout.encoding).strip() == "ASUSWRT-Merlin":
-        __data_files__ = [('/opt/etc/init.d', ['./S23openpyn'])]
+        __data_files__ = [('/opt/etc/init.d', [init_script])]
     elif os.path.exists("/etc/openwrt_release"):
-        __data_files__ = [('/opt/etc/init.d', ['./S23openpyn'])]
+        __data_files__ = [('/opt/etc/init.d', [init_script])]
 
 
 # print("\n".join(sorted({attrname for item in gc.get_objects() for attrname in dir(item) if attrname.startswith("__")})))
