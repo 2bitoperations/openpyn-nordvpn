@@ -57,6 +57,8 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
         '-a', '--area', type=str, help='Specify area, city name or state e.g \
         "openpyn au -a victoria" or "openpyn au -a \'sydney\'"')
     parser.add_argument(
+        '--rsyslog_server', type=str, help='if specified, additionally send logs to this rsyslog server')
+    parser.add_argument(
         '-d', '--daemon', help='Update and start systemd service openpyn.service,\
         running it as a background process, to check status "systemctl status openpyn"',
         action='store_true')
@@ -148,7 +150,7 @@ def main() -> bool:
         args.force_fw_rules, args.p2p, args.dedicated, args.double_vpn,
         args.tor_over_vpn, args.anti_ddos, args.netflix, args.test, args.internally_allowed,
         args.skip_dns_patch, args.silent, args.nvram, args.openvpn_options, args.location,
-        args.ignore_dep_checks, list_best_servers=args.list_best_servers)
+        args.ignore_dep_checks, list_best_servers=args.list_best_servers, rsyslog_server=args.rsyslog_server)
     return return_code
 
 
@@ -157,7 +159,7 @@ def run(init: bool, server: str, country_code: str, country: str, area: str, tcp
         max_load: int, top_servers: int, pings: str, kill: bool, kill_flush: bool, update: bool, list_servers: str,
         force_fw_rules: bool, p2p: bool, dedicated: bool, double_vpn: bool, tor_over_vpn: bool, anti_ddos: bool,
         netflix: bool, test: bool, internally_allowed: List, skip_dns_patch: bool, silent: bool, nvram: str,
-        openvpn_options: str, location: float, ignore_dep_checks: bool, list_best_servers: str) -> bool:
+        openvpn_options: str, location: float, ignore_dep_checks: bool, list_best_servers: str, rsyslog_server: str) -> bool:
 
     if init:
         initialise(log_folder)
@@ -218,6 +220,14 @@ def run(init: bool, server: str, country_code: str, country: str, area: str, tcp
         logger.setLevel(logging.WARNING)
         logger.debug("Non-Interactive")
         stats = False
+
+    if rsyslog_server:
+        syslogLogger = logging.handlers.SysLogHandler(
+            address=(rsyslog_server, "514"))
+        sysfs_formatter = logging.Formatter('openpyn %(name)s  - %(message)s')
+        syslogLogger.setFormatter(sysfs_formatter)
+        syslogLogger.setLevel(logging.DEBUG)
+        logger.addHandler(syslogLogger)
 
     port = "udp"
     if tcp:
