@@ -199,6 +199,7 @@ def run(init: bool, server: str, country_code: str, country: str, area: str, tcp
                 log_folder + '/openpyn.log', when='W0', interval=4)
             file_handler_formatter = logging.Formatter(log_format)
             file_handler.setFormatter(file_handler_formatter)
+            file_handler.setLevel(logging.DEBUG)
             logger.addHandler(file_handler)
         except PermissionError:
             root.verify_root_access(
@@ -213,11 +214,11 @@ def run(init: bool, server: str, country_code: str, country: str, area: str, tcp
                         level_styles=levelstyles, field_styles=fieldstyles)
 
     stats = True
+    logger.setLevel(logging.DEBUG)
     if sys.__stdin__.isatty():
         logger.debug("Interactive")
     else:
         logger.addHandler(logging.StreamHandler(sys.stdout))
-        logger.setLevel(logging.WARNING)
         logger.debug("Non-Interactive")
         stats = False
 
